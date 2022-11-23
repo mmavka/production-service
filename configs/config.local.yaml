@@ -43,6 +43,6 @@ http:
 postgresql:
   host: 0.0.0.0
   port: "5432"
-  username: postgres
-  password: postgres
-  database: prodservice
+  username: prod_service
+  password: password
+  database: prod_service
