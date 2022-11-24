@@ -101,35 +101,10 @@ func (s *ProductDAO) All(ctx context.Context, filtering filter.Filterable, sorti
 	return list, nil
 }
 
-func (s *ProductDAO) Create(ctx context.Context, dto *CreateProductStorageDTO) error {
+func (s *ProductDAO) Create(ctx context.Context, m map[string]interface{}) error {
 	sql, args, buildErr := s.queryBuilder.
 		Insert(tableScheme).
-		Columns(
-			"id",
-			"name",
-			"description",
-			"image_id",
-			"price",
-			"currency_id",
-			"rating",
-			"category_id",
-			"specification",
-			"created_at",
-			"updated_at",
-		).
-		Values(
-			dto.ID,
-			dto.Name,
-			dto.Description,
-			dto.ImageID,
-			dto.Price,
-			dto.CurrencyID,
-			dto.Rating,
-			dto.CategoryID,
-			dto.Specification,
-			dto.CreatedAt,
-			dto.UpdatedAt,
-		).
+		SetMap(m).
 		PlaceholderFormat(sq.Dollar).ToSql()
 
 	logger := logging.WithFields(ctx, map[string]interface{}{
@@ -207,4 +182,66 @@ func (s *ProductDAO) One(ctx context.Context, id string) (*ProductStorage, error
 	}
 
 	return &ps, nil
+}
+
+func (s *ProductDAO) Update(ctx context.Context, id string, m map[string]interface{}) error {
+	sql, args, buildErr := s.queryBuilder.
+		Update(tableScheme).
+		SetMap(m).
+		Where(sq.Eq{"id": id}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	logger := logging.WithFields(ctx, map[string]interface{}{
+		"sql":   sql,
+		"table": tableScheme,
+		"args":  args,
+	})
+	if buildErr != nil {
+		buildErr = db.ErrCreateQuery(buildErr)
+		logger.Error(buildErr)
+		return buildErr
+	}
+
+	if exec, execErr := s.client.Exec(ctx, sql, args...); execErr != nil {
+		execErr = db.ErrDoQuery(execErr)
+		logger.Error(execErr)
+		return execErr
+	} else if exec.RowsAffected() == 0 || !exec.Update() {
+		execErr = db.ErrDoQuery(errors.New("product was not updated. 0 rows were affected"))
+		logger.Error(execErr)
+		return execErr
+	}
+
+	return nil
+}
+
+func (s *ProductDAO) Delete(ctx context.Context, id string) error {
+	sql, args, buildErr := s.queryBuilder.
+		Delete(tableScheme).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+
+	logger := logging.WithFields(ctx, map[string]interface{}{
+		"sql":   sql,
+		"table": tableScheme,
+		"args":  args,
+	})
+	if buildErr != nil {
+		buildErr = db.ErrCreateQuery(buildErr)
+		logger.Error(buildErr)
+		return buildErr
+	}
+
+	if exec, execErr := s.client.Exec(ctx, sql, args...); execErr != nil {
+		execErr = db.ErrDoQuery(execErr)
+		logger.Error(execErr)
+		return execErr
+	} else if exec.RowsAffected() == 0 || !exec.Delete() {
+		execErr = db.ErrDoQuery(errors.New("product was not deleted. 0 rows were affected"))
+		logger.Error(execErr)
+		return execErr
+	}
+
+	return nil
 }

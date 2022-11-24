@@ -4,8 +4,8 @@ import (
 	"context"
 
 	pb_prod_products "github.com/theartofdevel/production-service-contracts/gen/go/prod_service/products/v1"
-	"production_service/internal/controller/dto"
 	"production_service/internal/domain/product/model"
+	"production_service/pkg/logging"
 )
 
 func (s *Server) AllProducts(
@@ -30,13 +30,62 @@ func (s *Server) AllProducts(
 	}, nil
 }
 
+func (s *Server) ProductByID(
+	ctx context.Context,
+	req *pb_prod_products.ProductByIDRequest,
+) (*pb_prod_products.ProductByIDResponse, error) {
+	one, err := s.policy.One(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb_prod_products.ProductByIDResponse{
+		Product: one.ToProto(),
+	}, nil
+}
+
+func (s *Server) UpdateProduct(
+	ctx context.Context,
+	req *pb_prod_products.UpdateProductRequest,
+) (*pb_prod_products.UpdateProductResponse, error) {
+	product, err := s.policy.One(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	product.UpdateFromPB(req)
+
+	err = s.policy.Update(ctx, product)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb_prod_products.UpdateProductResponse{}, nil
+}
+
+func (s *Server) DeleteProduct(
+	ctx context.Context,
+	req *pb_prod_products.DeleteProductRequest,
+) (*pb_prod_products.DeleteProductResponse, error) {
+	err := s.policy.Delete(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb_prod_products.DeleteProductResponse{}, nil
+}
+
 func (s *Server) CreateProduct(
 	ctx context.Context,
 	req *pb_prod_products.CreateProductRequest,
 ) (*pb_prod_products.CreateProductResponse, error) {
-	d := dto.NewCreateProductDTOFromPB(req)
+	p, err := model.NewProductFromPB(req)
+	if err != nil {
+		logging.WithError(ctx, err).WithField("product in pb", req).Error("model.NewProductFromPB")
+		return nil, err
+	}
 
-	product, err := s.policy.CreateProduct(ctx, d)
+	product, err := s.policy.CreateProduct(ctx, p)
 	if err != nil {
 		return nil, err
 	}
