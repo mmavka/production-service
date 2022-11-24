@@ -18,7 +18,7 @@ http:
   read_timeout: 15s
   write_timeout: 15s
   cors:
-    debug: true
+    debug: false
     allowed_methods: ["GET", "POST", "PATCH", "PUT", "OPTIONS", "DELETE"]
     allowed_origins:
       - "http://localhost:3000"

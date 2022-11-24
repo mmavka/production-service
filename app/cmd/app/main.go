@@ -23,5 +23,8 @@ func main() {
 	}
 
 	logging.Info(ctx, "Running Application")
-	a.Run(ctx)
+	err = a.Run(ctx)
+	if err != nil {
+		return
+	}
 }

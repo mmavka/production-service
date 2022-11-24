@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	AppConfig struct {
-		IsDebug   bool   `yaml:"is_debug" env:"APP_IS_DEBUG" env-default:"false"`
+		IsDebug   *bool  `yaml:"is_debug" env:"APP_IS_DEBUG" env-default:"false"`
 		Id        string `yaml:"id" env:"APP_ID"`
 		Name      string `yaml:"name" env:"APP_NAME"`
 		LogLevel  string `yaml:"log_level" env:"APP_LOG_LEVEL" env-default:"trace"`
@@ -33,9 +33,9 @@ type Config struct {
 		CORS         struct {
 			AllowedMethods     []string `yaml:"allowed_methods" env:"HTTP_CORS_ALLOWED_METHODS"`
 			AllowedOrigins     []string `yaml:"allowed_origins" env:"HTTP_CORS_ALLOWED_ORIGINS"`
-			AllowCredentials   bool     `yaml:"allow_credentials" env:"HTTP_CORS_ALLOW_CREDENTIALS"`
+			AllowCredentials   *bool    `yaml:"allow_credentials" env:"HTTP_CORS_ALLOW_CREDENTIALS"`
 			AllowedHeaders     []string `yaml:"allowed_headers" env:"HTTP_CORS_ALLOWED_HEADERS"`
-			OptionsPassthrough bool     `yaml:"options_passthrough" env:"HTTP_CORS_OPTIONS_PASSTHROUGH"`
+			OptionsPassthrough *bool    `yaml:"options_passthrough" env:"HTTP_CORS_OPTIONS_PASSTHROUGH"`
 			ExposedHeaders     []string `yaml:"exposed_headers" env:"HTTP_CORS_EXPOSED_HEADERS"`
 			Debug              bool     `yaml:"debug" env:"HTTP_CORS_ALLOWED_DEBUG"`
 		} `yaml:"cors"`
